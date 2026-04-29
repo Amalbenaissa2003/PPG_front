@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ORIO — Saisie des Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800;900&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --indigo:#6366f1; --indigo-dark:#4f46e5; --indigo-light:#e0e7ff;
+      --blue:#38bdf8; --blue-dark:#0284c7;
+      --green:#34d399; --green-dark:#059669; --green-light:#d1fae5;
+      --yellow:#fbbf24; --yellow-light:#fef3c7;
+      --orange:#fb923c; --red:#f87171; --red-light:#fee2e2;
+      --purple:#a78bfa;
+      --white:#fff; --bg:#f8faff; --text:#1e293b; --text-soft:#64748b; --border:#e2e8f0;
+      --radius:20px; --radius-sm:12px;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* ══ NAVBAR ══ */
+    .navbar {
+      position:sticky; top:0; z-index:100; height:64px;
+      background:rgba(255,255,255,.94); backdrop-filter:blur(18px);
+      border-bottom:1.5px solid rgba(99,102,241,.08);
+      display:flex; align-items:center; padding:0 32px; gap:14px;
+      box-shadow:0 2px 14px rgba(99,102,241,.07);
+    }
+    .nav-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
+    .nav-logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--indigo),var(--blue)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .nav-logo-txt { font-family:'Baloo 2',cursive; font-size:20px; font-weight:900; background:linear-gradient(135deg,var(--indigo),var(--blue-dark)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .nav-sep { width:1px; height:28px; background:var(--border); }
+    .nav-page { font-size:14px; font-weight:700; color:var(--text-soft); }
+    .nav-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+
+    /* Sprint steps */
+    .steps { display:flex; align-items:center; }
+    .step { display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--text-soft); }
+    .step-n { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; background:var(--border); color:var(--text-soft); flex-shrink:0; }
+    .step.done .step-n  { background:var(--green); color:white; }
+    .step.active .step-n { background:var(--indigo); color:white; }
+    .step.active { color:var(--indigo); }
+    .step.done   { color:var(--green-dark); }
+    .step-arr { color:var(--border); margin:0 8px; font-size:13px; }
+
+    .nav-pill { display:flex; align-items:center; gap:7px; background:var(--indigo-light); border-radius:99px; padding:5px 12px; }
+    .nav-av { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--indigo),var(--purple)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:white; }
+    .nav-name { font-size:13px; font-weight:700; color:var(--indigo-dark); }
+    .btn-back { display:flex; align-items:center; gap:5px; font-size:13px; font-weight:700; color:var(--text-soft); background:none; border:1.5px solid var(--border); border-radius:8px; padding:5px 12px; cursor:pointer; text-decoration:none; transition:color .2s,border-color .2s; }
+    .btn-back:hover { color:var(--indigo); border-color:var(--indigo); }
+
+    /* ══ LAYOUT ══ */
+    .wrap { max-width:1100px; margin:0 auto; padding:36px 24px 80px; display:grid; grid-template-columns:1fr 318px; gap:24px; align-items:start; }
+
+    .page-head { grid-column:1/-1; margin-bottom:4px; }
+    .breadcrumb { font-size:12px; color:var(--text-soft); margin-bottom:6px; }
+    .breadcrumb b { color:var(--indigo); }
+    .page-title { font-family:'Baloo 2',cursive; font-size:26px; font-weight:900; }
+    .page-sub { font-size:14px; color:var(--text-soft); margin-top:4px; }
+
+    /* ══ SECTION BANNER ══ */
+    .sec-banner {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 20px; border-radius:18px; margin-bottom:22px;
+      border:2px solid transparent;
+    }
+    .sb-emoji { font-size:30px; }
+    .sb-name  { font-family:'Baloo 2',cursive; font-size:17px; font-weight:800; }
+    .sb-sub   { font-size:12px; opacity:.8; margin-top:2px; }
+    .sb-change {
+      margin-left:auto; font-size:12px; font-weight:700;
+      background:rgba(255,255,255,.65); border:1.5px solid rgba(255,255,255,.85);
+      border-radius:8px; padding:5px 12px; cursor:pointer;
+      text-decoration:none; color:inherit; transition:background .2s;
+      white-space:nowrap;
+    }
+    .sb-change:hover { background:rgba(255,255,255,.9); }
+
+    /* ══ FORM CARD ══ */
+    .form-card { background:white; border-radius:24px; border:1.5px solid var(--border); box-shadow:0 4px 20px rgba(0,0,0,.05); overflow:hidden; }
+    .fc-head { padding:20px 26px 18px; border-bottom:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .fc-title { font-family:'Baloo 2',cursive; font-size:17px; font-weight:800; display:flex; align-items:center; gap:10px; }
+    .fc-badge { background:var(--indigo-light); color:var(--indigo); font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; }
+    .fc-count { font-size:13px; color:var(--text-soft); font-weight:700; }
+    .fc-body  { padding:22px 26px; }
+    .fc-foot  { padding:16px 26px 24px; border-top:1.5px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+
+    /* Section separator */
+    .mat-sec { margin-bottom:22px; }
+    .mat-sec:last-child { margin-bottom:0; }
+    .mat-sec-title {
+      display:flex; align-items:center; gap:8px;
+      font-size:11px; font-weight:800; text-transform:uppercase;
+      letter-spacing:.8px; color:var(--text-soft); margin-bottom:13px;
+    }
+    .mat-line { flex:1; height:1px; background:var(--border); }
+    .tag-main { background:var(--red-light); color:#b91c1c; font-size:10px; font-weight:800; padding:2px 9px; border-radius:99px; }
+    .tag-sec  { background:var(--bg); border:1.5px solid var(--border); font-size:10px; font-weight:700; padding:2px 9px; border-radius:99px; color:var(--text-soft); }
+
+    /* Note grid */
+    .note-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .note-row {
+      display:flex; align-items:center;
+      background:var(--bg); border-radius:var(--radius-sm);
+      padding:10px 13px; border:2px solid transparent;
+      transition:border-color .2s, background .2s, transform .15s; cursor:text; position:relative;
+    }
+    .note-row:focus-within { border-color:var(--indigo); background:white; transform:translateY(-1px); box-shadow:0 4px 12px rgba(99,102,241,.10); }
+    .n-emoji { font-size:17px; margin-right:8px; flex-shrink:0; }
+    .n-info  { flex:1; }
+    .n-name  { font-size:12px; font-weight:700; color:var(--text); display:block; line-height:1.2; }
+    .n-sub   { font-size:10px; color:var(--text-soft); }
+    .n-coeff { font-size:9px; font-weight:800; background:var(--indigo-light); color:var(--indigo); padding:1px 5px; border-radius:4px; margin-left:4px; }
+    .n-coeff-sec { font-size:9px; font-weight:800; background:#f1f5f9; color:var(--text-soft); padding:1px 5px; border-radius:4px; margin-left:4px; }
+    .n-hot  { font-size:9px; font-weight:800; background:var(--red-light); color:#b91c1c; padding:1px 5px; border-radius:4px; margin-left:4px; }
+    .n-inp-wrap { display:flex; align-items:center; gap:3px; }
+    .n-inp {
+      width:52px; border:none; outline:none;
+      background:white; border-radius:8px; padding:5px 6px;
+      font-size:15px; font-weight:800; font-family:'Baloo 2',cursive;
+      color:var(--text); text-align:center; border:1.5px solid var(--border);
+      transition:border-color .2s, color .2s;
+    }
+    .n-inp:focus { border-color:var(--indigo); }
+    .n-inp.ok   { color:var(--green-dark); border-color:var(--green); }
+    .n-inp.warn { color:#d97706; border-color:var(--yellow); }
+    .n-inp.bad  { color:#dc2626; border-color:var(--red); }
+    .n-slash    { font-size:10px; color:var(--text-soft); font-weight:700; }
+    .n-dot { width:7px; height:7px; border-radius:50%; position:absolute; top:9px; right:9px; background:var(--border); transition:background .3s; }
+    .n-dot.ok   { background:var(--green); }
+    .n-dot.warn { background:var(--yellow); }
+    .n-dot.bad  { background:var(--red); }
+
+    /* Buttons */
+    .btn-save {
+      flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+      background:linear-gradient(135deg,var(--indigo),var(--blue)); color:white;
+      font-family:'Baloo 2',cursive; font-size:15px; font-weight:800;
+      border:none; border-radius:12px; padding:13px 20px; cursor:pointer;
+      box-shadow:0 4px 14px rgba(99,102,241,.28);
+      transition:transform .2s,box-shadow .2s,opacity .2s; position:relative; overflow:hidden;
+    }
+    .btn-save:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 22px rgba(99,102,241,.36); }
+    .btn-save:disabled { opacity:.65; cursor:not-allowed; }
+    .btn-reset { background:none; border:2px solid var(--border); border-radius:12px; padding:13px 16px; font-size:13px; font-weight:700; color:var(--text-soft); cursor:pointer; transition:border-color .2s,color .2s; }
+    .btn-reset:hover { border-color:var(--red); color:var(--red); }
+    .spinner { display:inline-block; width:16px; height:16px; border:2.5px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:5px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Toast */
+    .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--text); color:white; font-size:14px; font-weight:700; padding:12px 22px; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.18); transition:transform .4s cubic-bezier(.16,1,.3,1),opacity .4s; opacity:0; z-index:9999; white-space:nowrap; display:flex; align-items:center; gap:8px; }
+    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+    .toast.ok  { background:linear-gradient(135deg,#059669,#34d399); }
+    .toast.err { background:linear-gradient(135deg,#dc2626,#f87171); }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar { display:flex; flex-direction:column; gap:18px; }
+
+    /* Moyenne card */
+    .avg-card {
+      background:linear-gradient(135deg,var(--indigo),var(--blue-dark));
+      border-radius:22px; padding:24px 20px; color:white; text-align:center;
+      position:relative; overflow:hidden;
+      box-shadow:0 8px 28px rgba(99,102,241,.26);
+    }
+    .avg-card::before { content:''; position:absolute; top:-30px; right:-30px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.08); }
+    .avg-lbl { font-size:10px; font-weight:800; opacity:.8; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+    .avg-val { font-family:'Baloo 2',cursive; font-size:50px; font-weight:900; line-height:1; }
+    .avg-den { font-size:15px; opacity:.6; margin-left:3px; }
+    .avg-row { display:flex; gap:10px; margin-top:12px; }
+    .avg-box { flex:1; background:rgba(255,255,255,.15); border-radius:10px; padding:8px; }
+    .avg-box-lbl { font-size:9px; font-weight:800; opacity:.8; text-transform:uppercase; letter-spacing:.3px; }
+    .avg-box-val { font-family:'Baloo 2',cursive; font-size:20px; font-weight:900; }
+    .avg-niveau { display:inline-block; background:rgba(255,255,255,.2); border-radius:99px; padding:4px 14px; font-size:12px; font-weight:800; margin-top:12px; }
+    .avg-bar-bg { height:5px; border-radius:99px; background:rgba(255,255,255,.2); margin-top:12px; overflow:hidden; }
+    .avg-bar-fill { height:100%; border-radius:99px; background:rgba(255,255,255,.85); transition:width .6s cubic-bezier(.16,1,.3,1); width:0%; }
+
+    /* Side cards */
+    .sc { background:white; border-radius:18px; padding:18px 20px; border:1.5px solid var(--border); box-shadow:0 2px 10px rgba(0,0,0,.04); }
+    .sc-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--text-soft); margin-bottom:12px; }
+    .cnt-row { display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px; }
+    .cnt-row:last-child { border-bottom:none; }
+    .cnt-lbl { font-weight:600; color:var(--text-soft); }
+    .cnt-val { font-family:'Baloo 2',cursive; font-size:15px; font-weight:800; color:var(--indigo); }
+    .pf-chips { display:flex; flex-wrap:wrap; gap:6px; min-height:22px; }
+    .pf-chip { padding:3px 10px; border-radius:99px; font-size:11px; font-weight:700; animation:pop .3s ease; }
+    @keyframes pop { from{transform:scale(.7);opacity:0;} to{transform:scale(1);opacity:1;} }
+    .pf-chip.g { background:var(--green-light); color:var(--green-dark); }
+    .pf-chip.b { background:var(--red-light); color:#dc2626; }
+    .pf-empty { font-size:12px; color:var(--text-soft); font-style:italic; }
+    .dom-row { margin-bottom:11px; }
+    .dom-row:last-child { margin-bottom:0; }
+    .dom-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+    .dom-name { font-size:12px; font-weight:700; }
+    .dom-score { font-family:'Baloo 2',cursive; font-size:13px; font-weight:800; }
+    .dom-bg { height:6px; border-radius:99px; background:var(--border); overflow:hidden; }
+    .dom-fill { height:100%; border-radius:99px; transition:width .6s cubic-bezier(.16,1,.3,1); width:0%; }
+
+    /* Next card */
+    .next-card { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:2px solid #bbf7d0; border-radius:18px; padding:18px 20px; }
+    .next-title { font-family:'Baloo 2',cursive; font-size:14px; font-weight:800; color:#065f46; margin-bottom:5px; }
+    .next-desc { font-size:12px; color:#047857; line-height:1.5; margin-bottom:12px; }
+    .btn-next { display:flex; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg,var(--green-dark),var(--green)); color:white; font-family:'Baloo 2',cursive; font-size:13px; font-weight:800; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; text-decoration:none; box-shadow:0 4px 12px rgba(5,150,105,.26); transition:transform .2s,box-shadow .2s; opacity:.4; pointer-events:none; }
+    .btn-next.on { opacity:1; pointer-events:auto; }
+    .btn-next.on:hover { transform:translateY(-2px); box-shadow:0 8px 18px rgba(5,150,105,.33); }
+
+    @media(max-width:900px){ .wrap{grid-template-columns:1fr;} .sidebar{display:grid;grid-template-columns:1fr 1fr;} .avg-card{grid-column:1/-1;} }
+    @media(max-width:600px){ .navbar{padding:0 16px;} .wrap{padding:20px 16px 60px;} .note-grid{grid-template-columns:1fr;} .sidebar{grid-template-columns:1fr;} .steps{display:none;} }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html">
+    <div class="nav-logo-icon">🎯</div>
+    <span class="nav-logo-txt">ORIO</span>
+  </a>
+  <div class="nav-sep"></div>
+  <span class="nav-page">📊 Saisie des notes</span>
+  <div class="nav-right">
+    <div class="steps">
+      <div class="step done"><div class="step-n">✓</div><span>Inscription</span></div>
+      <div class="step-arr">›</div>
+      <div class="step active"><div class="step-n">2</div><span>Notes</span></div>
+      <div class="step-arr">›</div>
+      <div class="step"><div class="step-n">3</div><span>Tests</span></div>
+      <div class="step-arr">›</div>
+      <div class="step"><div class="step-n">4</div><span>Résultats</span></div>
+    </div>
+    <div class="nav-pill">
+      <div class="nav-av" id="nav-av">?</div>
+      <span class="nav-name" id="nav-name">—</span>
+    </div>
+    <a href="index.html" class="btn-back">← Accueil</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-head">
+    <div class="breadcrumb">ORIO › <b>Étape 2 — Saisie des notes</b></div>
+    <h1 class="page-title">📊 Tes moyennes scolaires</h1>
+    <p class="page-sub">Notes sur 20 · Moyenne pondérée par coefficient · Formulaire adapté à ta section</p>
+  </div>
+
+  <!-- ══ FORM ══ -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-title">
+        📝 Notes par matière
+        <span class="fc-badge" id="fc-badge">—</span>
+      </div>
+      <span class="fc-count" id="fc-count">0 matières saisies</span>
+    </div>
+
+    <div class="fc-body">
+      <!-- Section banner -->
+      <div class="sec-banner" id="sec-banner">
+        <span class="sb-emoji" id="sb-emoji">📚</span>
+        <div>
+          <div class="sb-name" id="sb-name">Chargement…</div>
+          <div class="sb-sub"  id="sb-sub"></div>
+        </div>
+        <a href="register.html" class="sb-change">✏️ Modifier ma section</a>
+      </div>
+
+      <!-- Dynamic form -->
+      <div id="form-area"></div>
+    </div>
+
+    <div class="fc-foot">
+      <button class="btn-reset" onclick="resetNotes()">🗑️ Réinitialiser</button>
+      <button class="btn-save" id="btn-save" onclick="saveNotes()">💾 Sauvegarder mes notes</button>
+    </div>
+  </div>
+
+  <!-- ══ SIDEBAR ══ -->
+  <div class="sidebar">
+
+    <!-- Moyenne -->
+    <div class="avg-card">
+      <div class="avg-lbl">📊 Moyennes</div>
+      <div>
+        <span class="avg-val" id="avg-pond">—</span>
+        <span class="avg-den">/20</span>
+      </div>
+      <div class="avg-row">
+        <div class="avg-box">
+          <div class="avg-box-lbl">Pondérée</div>
+          <div class="avg-box-val" id="avg-pond2">—</div>
+        </div>
+        <div class="avg-box">
+          <div class="avg-box-lbl">Simple</div>
+          <div class="avg-box-val" id="avg-simple">—</div>
+        </div>
+      </div>
+      <div class="avg-niveau" id="avg-niveau">Saisir les notes</div>
+      <div class="avg-bar-bg"><div class="avg-bar-fill" id="avg-bar"></div></div>
+    </div>
+
+    <!-- Saisies -->
+    <div class="sc">
+      <div class="sc-title">📋 Saisies</div>
+      <div class="cnt-row"><span class="cnt-lbl">Total</span>           <span class="cnt-val" id="cnt-tot">0</span></div>
+      <div class="cnt-row"><span class="cnt-lbl">Principales 🔥</span>  <span class="cnt-val" id="cnt-princ">0</span></div>
+      <div class="cnt-row"><span class="cnt-lbl">Secondaires</span>     <span class="cnt-val" id="cnt-sec">0</span></div>
+    </div>
+
+    <!-- Points forts -->
+    <div class="sc">
+      <div class="sc-title">💪 Points forts ≥ 14</div>
+      <div class="pf-chips" id="chips-f"><span class="pf-empty">Aucun encore</span></div>
+    </div>
+
+    <!-- Points faibles -->
+    <div class="sc">
+      <div class="sc-title">⚠️ À améliorer &lt; 10</div>
+      <div class="pf-chips" id="chips-w"><span class="pf-empty">Aucun pour l'instant</span></div>
+    </div>
+
+    <!-- Domaines -->
+    <div class="sc">
+      <div class="sc-title">🎯 Scores domaines</div>
+      <div class="dom-row">
+        <div class="dom-hd"><span class="dom-name">💻 Informatique</span><span class="dom-score" id="ds-info" style="color:var(--indigo)">—</span></div>
+        <div class="dom-bg"><div class="dom-fill" id="db-info" style="background:linear-gradient(90deg,var(--indigo),var(--purple))"></div></div>
+      </div>
+      <div class="dom-row">
+        <div class="dom-hd"><span class="dom-name">🔬 Sciences</span><span class="dom-score" id="ds-sci" style="color:var(--green-dark)">—</span></div>
+        <div class="dom-bg"><div class="dom-fill" id="db-sci" style="background:linear-gradient(90deg,var(--green),#059669)"></div></div>
+      </div>
+      <div class="dom-row">
+        <div class="dom-hd"><span class="dom-name">📚 Lettres</span><span class="dom-score" id="ds-lit" style="color:var(--orange)">—</span></div>
+        <div class="dom-bg"><div class="dom-fill" id="db-lit" style="background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div>
+      </div>
+      <div class="dom-row">
+        <div class="dom-hd"><span class="dom-name">💼 Économie</span><span class="dom-score" id="ds-eco" style="color:#7c3aed">—</span></div>
+        <div class="dom-bg"><div class="dom-fill" id="db-eco" style="background:linear-gradient(90deg,var(--purple),#7c3aed)"></div></div>
+      </div>
+    </div>
+
+    <!-- Next -->
+    <div class="next-card">
+      <div class="next-title">🧠 Étape suivante</div>
+      <div class="next-desc">Sauvegarde tes notes pour déverrouiller les 3 tests psychométriques !</div>
+      <a href="tests.html" class="btn-next" id="btn-next">Passer aux tests 🚀</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+//  CONFIGURATION COMPLÈTE PAR SECTION
+//  Chaque matière : { coeff, type:'principale'|'secondaire', emoji, label, sub? }
+// ══════════════════════════════════════════════════════════════════════
+const SECTIONS = {
+
+  // ── 1ère secondaire — Tronc commun ─────────────────────────────────
+  tronc_commun: {
+    emoji:'🏛️', name:'1ère secondaire', sub:'Tronc commun — programme commun pour tous',
+    color:'#6366f1', light:'#e0e7ff',
+    matieres:{
+      mathematiques:      {coeff:4, type:'principale',  emoji:'📐', label:'Mathématiques'},
+      sciences_naturelles:{coeff:3, type:'principale',  emoji:'🌿', label:'Sciences naturelles'},
+      physique:           {coeff:3, type:'principale',  emoji:'⚗️', label:'Physique'},
+      arabe:              {coeff:4, type:'principale',  emoji:'🌙', label:'Arabe'},
+      francais:           {coeff:3, type:'principale',  emoji:'🇫🇷', label:'Français'},
+      anglais:            {coeff:3, type:'principale',  emoji:'🌍', label:'Anglais'},
+      histoire_geo:       {coeff:2, type:'secondaire',  emoji:'🗺️', label:'Histoire-Géo'},
+      education_islamique:{coeff:2, type:'secondaire',  emoji:'☪️', label:'Éducation islamique'},
+      informatique:       {coeff:2, type:'secondaire',  emoji:'💻', label:'Informatique'},
+      philosophie:        {coeff:1, type:'secondaire',  emoji:'🧩', label:'Philosophie (initiation)'},
+    },
+    domaines:{
+      scientifique:['mathematiques','physique','sciences_naturelles'],
+      informatique:['mathematiques','physique','informatique'],
+      litteraire:  ['arabe','francais','anglais','philosophie'],
+      economique:  ['mathematiques'],
+    },
+  },
+
+  // ── 2ème — Scientifique (Maths/Sciences/Technique) ──────────────────
+  scientifique: {
+    emoji:'🔬', name:'2ème secondaire — Scientifique',
+    sub:'Maths · Physique · Sciences naturelles · Informatique',
+    color:'#10b981', light:'#d1fae5',
+    matieres:{
+      mathematiques:      {coeff:5, type:'principale', emoji:'📐', label:'Mathématiques'},
+      physique:           {coeff:4, type:'principale', emoji:'⚗️', label:'Physique'},
+      sciences_naturelles:{coeff:4, type:'principale', emoji:'🌿', label:'Sciences naturelles'},
+      informatique:       {coeff:3, type:'principale', emoji:'💻', label:'Informatique'},
+      arabe:              {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      francais:           {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:            {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      histoire_geo:       {coeff:1, type:'secondaire', emoji:'🗺️', label:'Histoire-Géo'},
+      philosophie:        {coeff:1, type:'secondaire', emoji:'🧩', label:'Philosophie'},
+      sport:              {coeff:1, type:'secondaire', emoji:'⚽', label:'Sport'},
+    },
+    domaines:{
+      scientifique:['mathematiques','physique','sciences_naturelles'],
+      informatique:['mathematiques','physique','informatique'],
+      litteraire:  ['arabe','francais','anglais'],
+      economique:  ['mathematiques'],
+    },
+  },
+
+  // ── 2ème — Économie et Gestion ───────────────────────────────────────
+  economique: {
+    emoji:'💰', name:'2ème secondaire — Économie & Gestion',
+    sub:'Économie · Gestion · Mathématiques',
+    color:'#7c3aed', light:'#ede9fe',
+    matieres:{
+      economie:    {coeff:5, type:'principale', emoji:'📈', label:'Économie'},
+      gestion:     {coeff:4, type:'principale', emoji:'📋', label:'Gestion'},
+      mathematiques:{coeff:3, type:'principale', emoji:'📐', label:'Mathématiques'},
+      arabe:       {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      francais:    {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:     {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      histoire_geo:{coeff:1, type:'secondaire', emoji:'🗺️', label:'Histoire-Géo'},
+      informatique:{coeff:1, type:'secondaire', emoji:'💻', label:'Informatique'},
+    },
+    domaines:{
+      scientifique:['mathematiques'],
+      informatique:['mathematiques','informatique'],
+      litteraire:  ['arabe','francais','anglais'],
+      economique:  ['economie','gestion','mathematiques'],
+    },
+  },
+
+  // ── 2ème — Lettres ──────────────────────────────────────────────────
+  lettres_2: {
+    emoji:'📚', name:'2ème secondaire — Lettres',
+    sub:'Arabe · Philosophie · Histoire-Géo',
+    color:'#f472b6', light:'#fce7f3',
+    matieres:{
+      arabe:        {coeff:5, type:'principale', emoji:'🌙', label:'Arabe'},
+      philosophie:  {coeff:4, type:'principale', emoji:'🧩', label:'Philosophie'},
+      histoire_geo: {coeff:4, type:'principale', emoji:'🗺️', label:'Histoire-Géo'},
+      francais:     {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:      {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      mathematiques:{coeff:1, type:'secondaire', emoji:'📐', label:'Mathématiques (léger)', sub:'Coefficient faible'},
+    },
+    domaines:{
+      scientifique:['mathematiques'],
+      informatique:[],
+      litteraire:  ['arabe','philosophie','histoire_geo','francais','anglais'],
+      economique:  ['mathematiques'],
+    },
+  },
+
+  // ── Bac — Mathématiques ──────────────────────────────────────────────
+  mathematiques: {
+    emoji:'🔢', name:'Bac — Mathématiques',
+    sub:'La section la plus difficile — ouvre toutes les portes',
+    color:'#4f46e5', light:'#e0e7ff',
+    matieres:{
+      mathematiques:      {coeff:6, type:'principale', emoji:'📐', label:'Mathématiques', hot:true},
+      physique:           {coeff:5, type:'principale', emoji:'⚗️', label:'Physique',       hot:true},
+      informatique:       {coeff:3, type:'principale', emoji:'💻', label:'Informatique'},
+      sciences_naturelles:{coeff:2, type:'secondaire', emoji:'🌿', label:'Sciences naturelles'},
+      philosophie:        {coeff:2, type:'secondaire', emoji:'🧩', label:'Philosophie'},
+      arabe:              {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      francais:           {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:            {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      sport:              {coeff:1, type:'secondaire', emoji:'⚽', label:'Sport'},
+    },
+    domaines:{
+      scientifique:['mathematiques','physique','sciences_naturelles'],
+      informatique:['mathematiques','physique','informatique'],
+      litteraire:  ['francais','anglais','arabe'],
+      economique:  ['mathematiques'],
+    },
+  },
+
+  // ── Bac — Sciences expérimentales ───────────────────────────────────
+  sciences_exp: {
+    emoji:'🧪', name:'Bac — Sciences expérimentales',
+    sub:'Idéal médecine · pharmacie · biologie',
+    color:'#10b981', light:'#d1fae5',
+    matieres:{
+      sciences_naturelles:{coeff:6, type:'principale', emoji:'🌿', label:'Sciences naturelles', hot:true},
+      physique:           {coeff:5, type:'principale', emoji:'⚗️', label:'Physique',             hot:true},
+      mathematiques:      {coeff:4, type:'principale', emoji:'📐', label:'Mathématiques'},
+      philosophie:        {coeff:2, type:'secondaire', emoji:'🧩', label:'Philosophie'},
+      arabe:              {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      francais:           {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:            {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+    },
+    domaines:{
+      scientifique:['sciences_naturelles','physique','mathematiques'],
+      informatique:['mathematiques','physique'],
+      litteraire:  ['francais','anglais','arabe'],
+      economique:  ['mathematiques'],
+    },
+  },
+
+  // ── Bac — Sciences techniques ───────────────────────────────────────
+  sciences_tech: {
+    emoji:'⚙️', name:'Bac — Sciences techniques',
+    sub:'Ingénierie mécanique · industrielle',
+    color:'#f59e0b', light:'#fef3c7',
+    matieres:{
+      technologie:  {coeff:6, type:'principale', emoji:'⚙️', label:'Technologie',    hot:true},
+      mathematiques:{coeff:4, type:'principale', emoji:'📐', label:'Mathématiques'},
+      physique:     {coeff:4, type:'principale', emoji:'⚗️', label:'Physique'},
+      informatique: {coeff:2, type:'secondaire', emoji:'💻', label:'Informatique'},
+      francais:     {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:      {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      arabe:        {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      philosophie:  {coeff:1, type:'secondaire', emoji:'🧩', label:'Philosophie'},
+    },
+    domaines:{
+      scientifique:['mathematiques','physique'],
+      informatique:['informatique','mathematiques','physique'],
+      litteraire:  ['francais','anglais','arabe'],
+      economique:  ['mathematiques'],
+    },
+  },
+
+  // ── Bac — Sciences informatique ─────────────────────────────────────
+  sciences_info: {
+    emoji:'💻', name:'Bac — Sciences de l\'informatique',
+    sub:'Programmation · Algorithmes · Maths · Physique',
+    color:'#6366f1', light:'#e0e7ff',
+    matieres:{
+      informatique: {coeff:6, type:'principale', emoji:'💻', label:'Informatique (programmation)', hot:true},
+      mathematiques:{coeff:5, type:'principale', emoji:'📐', label:'Mathématiques'},
+      physique:     {coeff:4, type:'principale', emoji:'⚗️', label:'Physique'},
+      francais:     {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:      {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      arabe:        {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      philosophie:  {coeff:1, type:'secondaire', emoji:'🧩', label:'Philosophie'},
+    },
+    domaines:{
+      scientifique:['mathematiques','physique'],
+      informatique:['informatique','mathematiques','physique'],
+      litteraire:  ['francais','anglais','arabe'],
+      economique:  ['mathematiques'],
+    },
+  },
+
+  // ── Bac — Économie et Gestion ────────────────────────────────────────
+  eco_gestion: {
+    emoji:'📈', name:'Bac — Économie & Gestion',
+    sub:'Économie · Gestion · Maths · Commerce',
+    color:'#7c3aed', light:'#ede9fe',
+    matieres:{
+      economie:    {coeff:6, type:'principale', emoji:'📈', label:'Économie', hot:true},
+      gestion:     {coeff:5, type:'principale', emoji:'📋', label:'Gestion',  hot:true},
+      mathematiques:{coeff:3, type:'principale', emoji:'📐', label:'Mathématiques'},
+      francais:    {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:     {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      arabe:       {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      histoire_geo:{coeff:2, type:'secondaire', emoji:'🗺️', label:'Histoire-Géo'},
+    },
+    domaines:{
+      scientifique:['mathematiques'],
+      informatique:['mathematiques'],
+      litteraire:  ['francais','anglais','arabe'],
+      economique:  ['economie','gestion','mathematiques'],
+    },
+  },
+
+  // ── Bac — Lettres ────────────────────────────────────────────────────
+  lettres_bac: {
+    emoji:'📖', name:'Bac — Lettres',
+    sub:'Philosophie · Arabe · Histoire-Géographie · Français',
+    color:'#f472b6', light:'#fce7f3',
+    matieres:{
+      philosophie: {coeff:6, type:'principale', emoji:'🧩', label:'Philosophie',         hot:true},
+      arabe:       {coeff:5, type:'principale', emoji:'🌙', label:'Arabe',                hot:true},
+      histoire_geo:{coeff:4, type:'principale', emoji:'🗺️', label:'Histoire-Géographie'},
+      francais:    {coeff:3, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:     {coeff:3, type:'secondaire', emoji:'🌍', label:'Anglais'},
+    },
+    domaines:{
+      scientifique:[],
+      informatique:[],
+      litteraire:  ['philosophie','arabe','histoire_geo','francais','anglais'],
+      economique:  [],
+    },
+  },
+
+  // ── Bac — Sport ──────────────────────────────────────────────────────
+  sport_bac: {
+    emoji:'⚽', name:'Bac — Sport',
+    sub:'Éducation physique & sportive',
+    color:'#fb923c', light:'#ffedd5',
+    matieres:{
+      sport:              {coeff:6, type:'principale', emoji:'⚽', label:'Éducation physique', hot:true},
+      sciences_naturelles:{coeff:4, type:'principale', emoji:'🌿', label:'Sciences naturelles'},
+      mathematiques:      {coeff:3, type:'principale', emoji:'📐', label:'Mathématiques'},
+      francais:           {coeff:2, type:'secondaire', emoji:'🇫🇷', label:'Français'},
+      anglais:            {coeff:2, type:'secondaire', emoji:'🌍', label:'Anglais'},
+      arabe:              {coeff:2, type:'secondaire', emoji:'🌙', label:'Arabe'},
+      philosophie:        {coeff:1, type:'secondaire', emoji:'🧩', label:'Philosophie'},
+    },
+    domaines:{
+      scientifique:['sciences_naturelles','mathematiques'],
+      informatique:['mathematiques'],
+      litteraire:  ['francais','anglais','arabe'],
+      economique:  ['mathematiques'],
+    },
+  },
+};
+
+// Mapping niveau → section par défaut si pas de spécialité
+const NIV_DEFAULT = {
+  '1ere':'tronc_commun', '2eme_s':'scientifique',
+  '3eme_s':'mathematiques', '4eme_s':'mathematiques',
+};
+
+// ══════════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════════
+const API   = 'http://127.0.0.1:8000/api';
+const token = localStorage.getItem('access_token');
+const user  = JSON.parse(localStorage.getItem('user') || 'null');
+const notes = {};   // { key: float }
+let curSec  = null; // section courante
+
+// Auth guard
+if (!token) { window.location.href = 'login.html'; }
+if (user) {
+  document.getElementById('nav-name').textContent = user.first_name || user.email;
+  document.getElementById('nav-av').textContent   = (user.first_name || 'U')[0].toUpperCase();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  BUILD FORM
+// ══════════════════════════════════════════════════════════════════════
+function buildForm(secKey) {
+  const sec = SECTIONS[secKey];
+  if (!sec) { buildForm('tronc_commun'); return; }
+  curSec = { key: secKey, ...sec };
+
+  // Banner
+  const banner = document.getElementById('sec-banner');
+  banner.style.background   = sec.light;
+  banner.style.borderColor  = sec.color + '55';
+  banner.style.color        = sec.color;
+  document.getElementById('sb-emoji').textContent = sec.emoji;
+  document.getElementById('sb-name').textContent  = sec.name;
+  document.getElementById('sb-sub').textContent   = sec.sub;
+  document.getElementById('fc-badge').textContent = sec.name.split('—').pop().trim();
+
+  // Build matières grouped by type
+  const principales = Object.entries(sec.matieres).filter(([,v]) => v.type === 'principale');
+  const secondaires = Object.entries(sec.matieres).filter(([,v]) => v.type === 'secondaire');
+
+  let html = '';
+
+  if (principales.length) {
+    html += `
+      <div class="mat-sec">
+        <div class="mat-sec-title">
+          <span>🔥 Matières principales</span>
+          <div class="mat-line"></div>
+          <span class="tag-main">coefficient élevé</span>
+        </div>
+        <div class="note-grid">${principales.map(([k,m]) => noteRow(k,m)).join('')}</div>
+      </div>`;
+  }
+  if (secondaires.length) {
+    html += `
+      <div class="mat-sec">
+        <div class="mat-sec-title">
+          <span>📎 Matières secondaires</span>
+          <div class="mat-line"></div>
+          <span class="tag-sec">coefficient faible</span>
+        </div>
+        <div class="note-grid">${secondaires.map(([k,m]) => noteRow(k,m)).join('')}</div>
+      </div>`;
+  }
+
+  document.getElementById('form-area').innerHTML = html;
+  updateSidebar();
+}
+
+function noteRow(key, mat) {
+  const hotBadge  = mat.hot ? `<span class="n-hot">⭐ clé</span>` : '';
+  const coeffBadge = mat.type === 'principale'
+    ? `<span class="n-coeff">×${mat.coeff}</span>`
+    : `<span class="n-coeff-sec">×${mat.coeff}</span>`;
+  const subTxt = mat.sub ? `<span class="n-sub">${mat.sub}</span>` : '';
+  return `
+    <div class="note-row" id="row-${key}">
+      <div class="n-dot" id="dot-${key}"></div>
+      <span class="n-emoji">${mat.emoji}</span>
+      <div class="n-info">
+        <span class="n-name">${mat.label}${hotBadge}${coeffBadge}</span>
+        ${subTxt}
+      </div>
+      <div class="n-inp-wrap">
+        <input class="n-inp" id="note-${key}" type="number"
+               min="0" max="20" step="0.25" placeholder="—"
+               oninput="onNote('${key}',this)"/>
+        <span class="n-slash">/20</span>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  NOTE CHANGE
+// ══════════════════════════════════════════════════════════════════════
+function onNote(key, inp) {
+  let v = parseFloat(inp.value);
+  if (v > 20) { v = 20; inp.value = 20; }
+  if (v <  0) { v =  0; inp.value =  0; }
+
+  inp.classList.remove('ok','warn','bad');
+  const dot = document.getElementById('dot-' + key);
+  if (dot) dot.classList.remove('ok','warn','bad');
+
+  if (!isNaN(v) && inp.value !== '') {
+    notes[key] = v;
+    const cls = v >= 14 ? 'ok' : v >= 10 ? 'warn' : 'bad';
+    inp.classList.add(cls);
+    if (dot) dot.classList.add(cls);
+  } else {
+    delete notes[key];
+  }
+  updateSidebar();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════════════════════════════════════
+function updateSidebar() {
+  if (!curSec) return;
+
+  const mats = curSec.matieres;
+  const keys = Object.keys(notes);
+  const total = keys.length;
+
+  // Compter par type
+  let nPrinc = 0, nSec = 0;
+  keys.forEach(k => {
+    if (mats[k]) {
+      if (mats[k].type === 'principale') nPrinc++; else nSec++;
+    }
+  });
+
+  // Count
+  const totalMat = Object.keys(mats).length;
+  document.getElementById('fc-count').textContent = `${total} / ${totalMat} matières saisies`;
+  document.getElementById('cnt-tot').textContent   = total;
+  document.getElementById('cnt-princ').textContent = nPrinc;
+  document.getElementById('cnt-sec').textContent   = nSec;
+
+  // Moyennes
+  if (total === 0) {
+    document.getElementById('avg-pond').textContent   = '—';
+    document.getElementById('avg-pond2').textContent  = '—';
+    document.getElementById('avg-simple').textContent = '—';
+    document.getElementById('avg-niveau').textContent = 'Saisir les notes';
+    document.getElementById('avg-bar').style.width    = '0%';
+  } else {
+    // Simple
+    const simple = keys.reduce((a,k) => a + notes[k], 0) / total;
+
+    // Pondérée
+    let totPts = 0, totCoeff = 0;
+    keys.forEach(k => {
+      const coeff = mats[k] ? mats[k].coeff : 1;
+      totPts   += notes[k] * coeff;
+      totCoeff += coeff;
+    });
+    const pond = totCoeff > 0 ? totPts / totCoeff : simple;
+
+    document.getElementById('avg-pond').textContent   = pond.toFixed(2);
+    document.getElementById('avg-pond2').textContent  = pond.toFixed(2);
+    document.getElementById('avg-simple').textContent = simple.toFixed(2);
+    document.getElementById('avg-bar').style.width    = (pond / 20 * 100) + '%';
+
+    let niv;
+    if (pond >= 16)      niv = '🌟 Excellent';
+    else if (pond >= 13) niv = '✅ Bien';
+    else if (pond >= 10) niv = '📖 Passable';
+    else                 niv = '⚠️ Insuffisant';
+    document.getElementById('avg-niveau').textContent = niv;
+  }
+
+  // Points forts / faibles
+  const forts   = keys.filter(k => notes[k] >= 14);
+  const faibles = keys.filter(k => notes[k] <  10);
+  const lbl = k => mats[k] ? mats[k].label : k;
+
+  document.getElementById('chips-f').innerHTML = forts.length
+    ? forts.map(k => `<span class="pf-chip g">✅ ${lbl(k)}</span>`).join('')
+    : '<span class="pf-empty">Aucun encore</span>';
+
+  document.getElementById('chips-w').innerHTML = faibles.length
+    ? faibles.map(k => `<span class="pf-chip b">⚠️ ${lbl(k)}</span>`).join('')
+    : '<span class="pf-empty">Aucun pour l\'instant</span>';
+
+  // Scores domaines (pondérés)
+  function domScore(matKeys) {
+    const items = matKeys.filter(k => notes[k] !== undefined)
+                         .map(k => ({ n: notes[k], c: mats[k] ? mats[k].coeff : 1 }));
+    if (!items.length) return null;
+    const pts = items.reduce((a,i) => a + i.n * i.c, 0);
+    const cs  = items.reduce((a,i) => a + i.c, 0);
+    return pts / cs;
+  }
+  function setDom(sId, bId, matKeys) {
+    const s = domScore(matKeys);
+    document.getElementById(sId).textContent = s !== null ? s.toFixed(1) + '/20' : '—';
+    document.getElementById(bId).style.width = s !== null ? (s / 20 * 100) + '%' : '0%';
+  }
+  const d = curSec.domaines;
+  setDom('ds-info', 'db-info', d.informatique || []);
+  setDom('ds-sci',  'db-sci',  d.scientifique || []);
+  setDom('ds-lit',  'db-lit',  d.litteraire   || []);
+  setDom('ds-eco',  'db-eco',  d.economique   || []);
+
+  // Bouton next
+  document.getElementById('btn-next').classList.toggle('on', nPrinc >= 2);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  SAVE
+// ══════════════════════════════════════════════════════════════════════
+async function saveNotes() {
+  const nPrinc = Object.keys(notes).filter(k => curSec?.matieres[k]?.type === 'principale').length;
+  if (nPrinc < 2) {
+    toast('⚠️ Saisis au moins 2 matières principales', 'err'); return;
+  }
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sauvegarde…';
+
+  try {
+    const res  = await fetch(`${API}/notes/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(notes),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast('✅ Notes sauvegardées !', 'ok');
+      document.getElementById('btn-next').classList.add('on');
+      btn.innerHTML = '✅ Sauvegardé !';
+      btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+      setTimeout(() => { btn.innerHTML = '💾 Sauvegarder mes notes'; btn.style.background = ''; btn.disabled = false; }, 2500);
+    } else {
+      toast('❌ ' + Object.values(data).flat().join(' '), 'err');
+      btn.disabled = false; btn.innerHTML = '💾 Sauvegarder mes notes';
+    }
+  } catch {
+    toast('🌐 Erreur réseau', 'err');
+    btn.disabled = false; btn.innerHTML = '💾 Sauvegarder mes notes';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  RESET
+// ══════════════════════════════════════════════════════════════════════
+function resetNotes() {
+  if (!confirm('Réinitialiser toutes les notes ?')) return;
+  document.querySelectorAll('.n-inp').forEach(i => { i.value = ''; i.className = 'n-inp'; });
+  document.querySelectorAll('.n-dot').forEach(d => d.className = 'n-dot');
+  Object.keys(notes).forEach(k => delete notes[k]);
+  updateSidebar();
+  toast('🗑️ Notes réinitialisées', 'ok');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  LOAD
+// ══════════════════════════════════════════════════════════════════════
+async function loadNotes() {
+  try {
+    const res = await fetch(`${API}/notes/`, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (res.ok) {
+      const data = await res.json();
+      Object.keys(data).forEach(k => {
+        if (data[k] !== null && data[k] !== undefined) {
+          const inp = document.getElementById('note-' + k);
+          if (inp) { inp.value = data[k]; onNote(k, inp); }
+        }
+      });
+      toast('📂 Notes chargées', 'ok');
+    }
+  } catch {}
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════════════
+let toastTmr;
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════════════
+(function init() {
+  let secKey = 'tronc_commun';
+  if (user) {
+    const spec  = user.specialite;
+    const niv   = user.niveau;
+    if (spec && SECTIONS[spec])      secKey = spec;
+    else if (niv && NIV_DEFAULT[niv]) secKey = NIV_DEFAULT[niv];
+  }
+  buildForm(secKey);
+  loadNotes();
+})();
+</script>
+</body>
+</html>
