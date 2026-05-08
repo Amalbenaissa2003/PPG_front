@@ -241,13 +241,13 @@
         <div class="logo-icon">🎯</div>
         <span class="logo-text">ORIO</span>
       </div>
-      <div class="welcome-pill">👋 Content de te revoir !</div>
+      <div class="welcome-pill"> Content de te revoir !</div>
       <div class="card-title">Connexion à ton compte</div>
       <div class="card-subtitle">Continue ton parcours d'orientation 🚀</div>
     </div>
 
     <div class="error-box" id="error-box">
-      <span>⚠️</span>
+      <span></span>
       <span id="error-msg"></span>
     </div>
 
@@ -277,7 +277,7 @@
       </div>
 
       <button type="submit" class="btn-submit" id="submit-btn" onclick="ripple(event)">
-        Se connecter 🔓
+        Se connecter 
       </button>
     </form>
 
@@ -338,18 +338,18 @@
           localStorage.setItem('refresh_token', data.tokens.refresh);
           localStorage.setItem('user', JSON.stringify(data.user));
 
-          btn.innerHTML = '✅ Connecté ! Redirection…';
+          btn.innerHTML = ' Connecté ! Redirection…';
           btn.style.background = 'linear-gradient(135deg,#34d399,#059669)';
           setTimeout(() => window.location.href = 'index.html', 1000);
         } else {
-          showError(data.error || 'Identifiants incorrects. Réessaie ! 🔑');
+          showError(data.error || 'Identifiants incorrects. Réessaie ! ');
           btn.disabled = false;
-          btn.innerHTML = 'Se connecter 🔓';
+          btn.innerHTML = 'Se connecter ';
         }
       } catch {
-        showError('Erreur réseau. Vérifie ta connexion. 🌐');
+        showError('Erreur réseau. Vérifie ta connexion. ');
         btn.disabled = false;
-        btn.innerHTML = 'Se connecter 🔓';
+        btn.innerHTML = 'Se connecter ';
       }
     });
 
