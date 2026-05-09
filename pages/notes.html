@@ -234,6 +234,9 @@
       <span class="nav-name" id="nav-name">—</span>
     </div>
     <a href="index.html" class="btn-back">← Accueil</a>
+    <button onclick="handleLogout()" style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#dc2626;background:none;border:1.5px solid #fecaca;border-radius:8px;padding:5px 12px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
+       Déconnexion
+    </button>
   </div>
 </nav>
 
@@ -344,7 +347,7 @@
     <div class="next-card">
       <div class="next-title">🧠 Étape suivante</div>
       <div class="next-desc">Sauvegarde tes notes pour déverrouiller les 3 tests psychométriques !</div>
-      <a href="tests.html" class="btn-next" id="btn-next">Passer aux tests 🚀</a>
+      <a href="bigfive.html" class="btn-next" id="btn-next">Passer aux tests 🚀</a>
     </div>
   </div>
 </div>
@@ -899,6 +902,24 @@ function toast(msg, type = '') {
   t.classList.add('show');
   clearTimeout(toastTmr);
   toastTmr = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DÉCONNEXION
+// ═══════════════════════════════════════════════════════════════
+async function handleLogout() {
+  const refresh = localStorage.getItem('refresh_token');
+  try {
+    await apiFetch(`${API}/auth/logout/`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ refresh }),
+    });
+  } catch {}
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+  window.location.href = 'login.html';
 }
 
 // ══════════════════════════════════════════════════════════════════════

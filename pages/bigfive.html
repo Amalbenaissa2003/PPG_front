@@ -183,13 +183,18 @@
       <div class="step-arr">›</div>
       <div class="step"><div class="step-n">4</div><span>RIASEC</span></div>
       <div class="step-arr">›</div>
-      <div class="step"><div class="step-n">5</div><span>Résultats</span></div>
+      <div class="step"><div class="step-n">5</div><span>Compétences</span></div>
+      <div class="step-arr">›</div>
+      <div class="step"><div class="step-n">6</div><span>Résultats</span></div>
     </div>
     <div class="nav-pill">
       <div class="nav-av" id="nav-av">?</div>
       <span class="nav-name" id="nav-name">—</span>
     </div>
     <a href="notes.html" class="btn-back">← Notes</a>
+    <button onclick="handleLogout()" style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#dc2626;background:none;border:1.5px solid #fecaca;border-radius:8px;padding:5px 12px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
+       Déconnexion
+    </button>
   </div>
 </nav>
 
@@ -536,6 +541,24 @@ async function resetBigFive() {
   document.getElementById('area-test').style.display    = 'block';
   renderQuestion(0);
   toast('🔄 Test réinitialisé', 'ok');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DÉCONNEXION
+// ═══════════════════════════════════════════════════════════════
+async function handleLogout() {
+  const refresh = localStorage.getItem('refresh_token');
+  try {
+    await apiFetch(`${API}/auth/logout/`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ refresh }),
+    });
+  } catch {}
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+  window.location.href = 'login.html';
 }
 
 // ═══════════════════════════════════════════════════════════════════

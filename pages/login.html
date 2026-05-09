@@ -340,7 +340,7 @@
 
           btn.innerHTML = ' Connecté ! Redirection…';
           btn.style.background = 'linear-gradient(135deg,#34d399,#059669)';
-          setTimeout(() => window.location.href = 'index.html', 1000);
+          setTimeout(() => window.location.href = './index.html', 1000);
         } else {
           showError(data.error || 'Identifiants incorrects. Réessaie ! ');
           btn.disabled = false;
