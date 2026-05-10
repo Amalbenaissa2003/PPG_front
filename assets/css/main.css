@@ -54,9 +54,13 @@ body {
 .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
 .nav-logo-icon {
   width: 36px; height: 36px;
-  background: linear-gradient(135deg, var(--indigo), var(--blue));
-  border-radius: 10px; display: flex; align-items: center;
+  display: flex; align-items: center;
   justify-content: center; font-size: 18px;
+}
+.nav-logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .nav-logo-txt {
   font-family: 'Baloo 2', cursive; font-size: 20px; font-weight: 900;
