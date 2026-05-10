@@ -369,6 +369,7 @@ const NIV = {
 // ══════════════════════════════════════════════
 const SPEC_2 = [
   { val:'scientifique', emoji:'🔬', name:'Sciences'},
+  { val:'informatique', emoji:'💻', name:'Informatique'},
   { val:'economique',   emoji:'💰', name:'Économie & Gestion'},
   { val:'lettres_2',    emoji:'📚', name:'Lettres'},
 ];
@@ -549,7 +550,7 @@ document.getElementById('form').addEventListener('submit', async e => {
     if (res.ok) {
       btn.innerHTML = '✅ Compte créé ! Redirection vers connexion…';
       btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
-      setTimeout(() => window.location.href = 'login.html', 1200);
+      setTimeout(() => window.location.href = 'index.html', 1200);
     } else {
       showErr(Object.values(data).flat().join(' '));
       btn.disabled = false;
