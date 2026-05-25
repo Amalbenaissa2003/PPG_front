@@ -30,7 +30,8 @@
       box-shadow:0 2px 14px rgba(99,102,241,.07);
     }
     .nav-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
-    .nav-logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--indigo),var(--blue)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .nav-logo-icon { width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .nav-logo-icon img { width:100%; height:100%; object-fit:contain; }
     .nav-logo-txt { font-family:'Baloo 2',cursive; font-size:20px; font-weight:900; background:linear-gradient(135deg,var(--indigo),var(--blue-dark)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
     .nav-sep { width:1px; height:28px; background:var(--border); }
     .nav-page { font-size:14px; font-weight:700; color:var(--text-soft); }
@@ -286,7 +287,7 @@
 
 <nav class="navbar">
   <a class="nav-logo" href="index.html">
-    <div class="nav-logo-icon">🎯</div>
+    <div class="nav-logo-icon"><img src="../assets/images/logo.png" alt="ORIO"/></div>
     <span class="nav-logo-txt">ORIO</span>
   </a>
   <div class="nav-sep"></div>
