@@ -285,7 +285,7 @@
     <span class="nav-logo-txt">ORIO</span>
   </a>
   <div class="nav-sep"></div>
-  <span class="nav-page">⚡Compétences Cognitives</span>
+  <span class="nav-page">Saisie des notes</span>
   <div class="nav-right">
     <div class="steps">
       <div class="step done"><div class="step-n">✓</div><span>Inscription</span></div>
@@ -1121,31 +1121,35 @@ function resetTrimestre() {
 // ══════════════════════════════════════════════════════════════════════
 async function loadNotes() {
   try {
-    const res = await fetch(`${API}/notes/`, { headers: { 'Authorization':'Bearer ' + token } });
+    const res = await fetch(`${API}/notes/`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     if (!res.ok) return;
     const data = await res.json();
 
-    // Recharger dans le state
-    for (let t = 1; t <= 3; t++) {
-      Object.keys(data.trimestres || []).forEach(trim => {
-        const t = trim.numero;
-        trim.notes.forEach(n => {
-          notes[t][n.matiere] = n.valeur;
-          saved[t] = true;
-        });
+    // 1. Charger TOUTES les notes en mémoire (les 3 trimestres)
+    (data.trimestres || []).forEach(trim => {
+      const t = trim.numero;
+      trim.notes.forEach(n => {
+        notes[t][n.matiere] = n.valeur;
+        saved[t] = true;
       });
-    }
+    });
 
-    // Afficher les notes du trimestre courant
+    // 2. Afficher uniquement le trimestre actuellement rendu dans le DOM
     Object.entries(notes[currentT]).forEach(([k, v]) => {
       const inp = document.getElementById(`note-t${currentT}-${k}`);
-      if (inp) { inp.value = v; colorInp(inp, v); colorDot(document.getElementById(`dot-t${currentT}-${k}`), v); }
+      if (inp) {
+        inp.value = v;
+        colorInp(inp, v);
+        colorDot(document.getElementById(`dot-t${currentT}-${k}`), v);
+      }
     });
 
     updateSidebar();
-    const anySaved = saved[1] || saved[2] || saved[3];
-    if (anySaved) toast('📂 Notes chargées', 'ok');
-  } catch {}
+    if (saved[1] || saved[2] || saved[3]) toast('Notes chargées', 'ok');
+
+  } catch(e) {}
 }
 
 // ══════════════════════════════════════════════════════════════════════

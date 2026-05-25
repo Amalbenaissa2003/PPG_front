@@ -551,7 +551,7 @@ document.getElementById('form').addEventListener('submit', async e => {
       localStorage.setItem('user', JSON.stringify(data.user));
       btn.innerHTML = '✅ Compte créé ! Redirection…';
       btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
-      setTimeout(() => window.location.href = './index.html', 1200);
+      setTimeout(() => window.location.href = './dashboard.html', 1200);
     } else {
       showErr(Object.values(data).flat().join(' '));
       btn.disabled = false;
